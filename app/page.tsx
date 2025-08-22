@@ -26,7 +26,7 @@ import {
 } from "recharts"
 import {
   TrendingUp,
-  Euro,
+  DollarSign,
   Calendar,
   Download,
   Plus,
@@ -85,8 +85,8 @@ export default function SalesTrackingSystem() {
       const salesArray: DailySale[] = Object.entries(data).map(([date, value]: any) => ({
         date,
         amount: value.amount,
-        honoraireAmount: value.honoraireAmount || value.amount * 0.96,
-        netAmount: value.netAmount || value.amount * 0.1,
+        honoraireAmount: value.honoraireAmount || value.amount * 0.20, // 20%
+        netAmount: value.netAmount || value.amount * 0.80, // 80%
       }));
       setDailySales(salesArray);
     });
@@ -108,8 +108,8 @@ export default function SalesTrackingSystem() {
       return;
     }
 
-    const honoraireAmount = amount * 0.96;
-    const netAmount = amount * 0.1;
+    const honoraireAmount = amount * 0.20;  // 20% du total
+    const netAmount = amount * 0.80;        // 80% du total
 
     try {
       await set(ref(database, "ventes/" + selectedDate), {
@@ -222,9 +222,9 @@ export default function SalesTrackingSystem() {
     doc.text("Résumé Annuel", 20, 80)
     doc.setFontSize(10)
     doc.setFont("helvetica", "normal")
-    doc.text(`Total des ventes brutes: ${(stats.total || 0).toFixed(2)} €`, 20, 95)
-    doc.text(`Total des honoraires: ${(stats.honoraireTotal || 0).toFixed(2)} €`, 20, 105)
-    doc.text(`Total des ventes nettes: ${(stats.netTotal || 0).toFixed(2)} €`, 20, 115)
+    doc.text(`Total des ventes brutes: ${(stats.total || 0).toFixed(2)} $`, 20, 95)
+    doc.text(`Total des honoraires: ${(stats.honoraireTotal || 0).toFixed(2)} $`, 20, 105)
+    doc.text(`Total des ventes nettes: ${(stats.netTotal || 0).toFixed(2)} $`, 20, 115)
     doc.text(`Nombre de jours avec ventes: ${stats.daysWithSales || 0}`, 20, 125)
 
     doc.setFontSize(12)
@@ -248,9 +248,9 @@ export default function SalesTrackingSystem() {
         yPos = 20
       }
       doc.text(month.month, 20, yPos)
-      doc.text(`${(month.total || 0).toFixed(2)} €`, 60, yPos)
-      doc.text(`${(month.honoraireTotal || 0).toFixed(2)} €`, 110, yPos)
-      doc.text(`${(month.netTotal || 0).toFixed(2)} €`, 150, yPos)
+      doc.text(`${(month.total || 0).toFixed(2)} $`, 60, yPos)
+      doc.text(`${(month.honoraireTotal || 0).toFixed(2)} $`, 110, yPos)
+      doc.text(`${(month.netTotal || 0).toFixed(2)} $`, 150, yPos)
       doc.text((month.days || 0).toString(), 190, yPos)
     })
 
@@ -275,9 +275,9 @@ export default function SalesTrackingSystem() {
           yPos = 20
         }
         doc.text(new Date(sale.date).toLocaleDateString("fr-FR"), 20, yPos)
-        doc.text(`${sale.amount.toFixed(2)} €`, 60, yPos)
-        doc.text(`${sale.honoraireAmount.toFixed(2)} €`, 110, yPos)
-        doc.text(`${sale.netAmount.toFixed(2)} €`, 150, yPos)
+        doc.text(`${sale.amount.toFixed(2)} $`, 60, yPos)
+        doc.text(`${sale.honoraireAmount.toFixed(2)} $`, 110, yPos)
+        doc.text(`${sale.netAmount.toFixed(2)} $`, 150, yPos)
       })
     }
 
@@ -343,11 +343,11 @@ export default function SalesTrackingSystem() {
         <Card className="hover:shadow-xl transition-all duration-500 hover:scale-105 animate-slide-up">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-4">
             <CardTitle className="text-xs sm:text-sm font-medium">Total Ventes Brutes</CardTitle>
-            <Euro className="h-4 w-4 text-muted-foreground flex-shrink-0 animate-bounce-subtle" />
+            <DollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0 animate-bounce-subtle" />
           </CardHeader>
           <CardContent className="p-3 sm:p-4 pt-0">
             <div className="text-lg sm:text-2xl font-bold text-chart-1 break-all animate-number-count">
-              {(stats.total || 0).toFixed(2)} €
+              {(stats.total || 0).toFixed(2)} $
             </div>
             <p className="text-xs text-foreground/70">Saisies quotidiennes</p>
           </CardContent>
@@ -360,9 +360,9 @@ export default function SalesTrackingSystem() {
           </CardHeader>
           <CardContent className="p-3 sm:p-4 pt-0">
             <div className="text-lg sm:text-2xl font-bold text-chart-3 break-all animate-number-count">
-              {(stats.honoraireTotal || 0).toFixed(2)} €
+              {(stats.honoraireTotal || 0).toFixed(2)} $
             </div>
-            <p className="text-xs text-foreground/70">96% des ventes brutes</p>
+            <p className="text-xs text-foreground/70">20% des ventes brutes</p>
           </CardContent>
         </Card>
 
@@ -373,9 +373,9 @@ export default function SalesTrackingSystem() {
           </CardHeader>
           <CardContent className="p-3 sm:p-4 pt-0">
             <div className="text-lg sm:text-2xl font-bold text-chart-2 break-all animate-number-count">
-              {(stats.netTotal || 0).toFixed(2)} €
+              {(stats.netTotal || 0).toFixed(2)} $
             </div>
-            <p className="text-xs text-foreground/70">-90% appliqué</p>
+            <p className="text-xs text-foreground/70">80% des ventes brutes</p>
           </CardContent>
         </Card>
 
@@ -416,7 +416,7 @@ export default function SalesTrackingSystem() {
                 Saisie des Ventes Quotidiennes
               </CardTitle>
               <CardDescription className="text-sm text-foreground/80">
-                Ajoutez vos ventes jour par jour. Les ventes nettes (-90%) et honoraires (96%) sont calculées automatiquement.
+                Ajoutez vos ventes jour par jour. Les ventes nettes (80%) et honoraires (20%) sont calculées automatiquement.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 p-4 sm:p-6">
@@ -442,7 +442,7 @@ export default function SalesTrackingSystem() {
 
                 <div className="space-y-2">
                   <Label htmlFor="dailyAmount" className="text-sm font-medium text-foreground">
-                    Montant du Jour (€)
+                    Montant du Jour ($)
                   </Label>
                   <Input
                     id="dailyAmount"
@@ -474,9 +474,9 @@ export default function SalesTrackingSystem() {
               {dailyAmount && (
                 <div className="p-3 sm:p-4 bg-muted/70 rounded-lg animate-fade-in-scale border border-primary/20">
                   <p className="text-sm break-words text-foreground">
-                    <strong>Aperçu:</strong> Vente brute: {(Number.parseFloat(dailyAmount || "0") || 0).toFixed(2)} € →
-                    Honoraire: {((Number.parseFloat(dailyAmount || "0") || 0) * 0.96).toFixed(2)} € → Vente nette:{" "}
-                    {((Number.parseFloat(dailyAmount || "0") || 0) * 0.1).toFixed(2)} €
+                    <strong>Aperçu:</strong> Vente brute: {(Number.parseFloat(dailyAmount || "0") || 0).toFixed(2)} $ →
+                    Honoraire: {((Number.parseFloat(dailyAmount || "0") || 0) * 0.20).toFixed(2)} $ → Vente nette:{" "}
+                    {((Number.parseFloat(dailyAmount || "0") || 0) * 0.80).toFixed(2)} $
                   </p>
                 </div>
               )}
@@ -499,13 +499,13 @@ export default function SalesTrackingSystem() {
                     </div>
                     <div className="flex flex-wrap gap-2 items-center w-full sm:w-auto">
                       <Badge variant="outline" className="text-sm px-3 py-1 justify-center">
-                        {(currentDailySale.amount || 0).toFixed(2)} € brut
+                        {(currentDailySale.amount || 0).toFixed(2)} $ brut
                       </Badge>
                       <Badge variant="secondary" className="text-sm px-3 py-1 justify-center">
-                        {(currentDailySale.honoraireAmount || 0).toFixed(2)} € honoraire
+                        {(currentDailySale.honoraireAmount || 0).toFixed(2)} $ honoraire
                       </Badge>
                       <Badge variant="default" className="text-sm px-3 py-1 justify-center">
-                        {(currentDailySale.netAmount || 0).toFixed(2)} € net
+                        {(currentDailySale.netAmount || 0).toFixed(2)} $ net
                       </Badge>
                     </div>
                   </div>
@@ -537,13 +537,13 @@ export default function SalesTrackingSystem() {
                         </div>
                         <div className="flex flex-wrap gap-2 items-center w-full sm:w-auto">
                           <Badge variant="outline" className="text-xs bg-background/50">
-                            {sale.amount.toFixed(2)} € brut
+                            {sale.amount.toFixed(2)} $ brut
                           </Badge>
                           <Badge variant="secondary" className="text-xs bg-background/50">
-                            {sale.honoraireAmount.toFixed(2)} € honoraire
+                            {sale.honoraireAmount.toFixed(2)} $ honoraire
                           </Badge>
                           <Badge variant="default" className="text-xs bg-background/50">
-                            {sale.netAmount.toFixed(2)} € net
+                            {sale.netAmount.toFixed(2)} $ net
                           </Badge>
                           <Button
                             variant="destructive"
@@ -579,7 +579,7 @@ export default function SalesTrackingSystem() {
                       <XAxis dataKey="week" fontSize={12} tick={{ fontSize: 10, fill: "hsl(var(--foreground))" }} />
                       <YAxis fontSize={12} tick={{ fill: "hsl(var(--foreground))" }} />
                       <Tooltip
-                        formatter={(value) => [`${Number(value).toFixed(2)} €`, ""]}
+                        formatter={(value) => [`${Number(value).toFixed(2)} $`, ""]}
                         contentStyle={{
                           backgroundColor: "hsl(var(--background))",
                           border: "1px solid hsl(var(--border))",
@@ -618,19 +618,19 @@ export default function SalesTrackingSystem() {
                       <div className="flex justify-between items-center">
                         <span className="text-xs sm:text-sm text-muted-foreground">Ventes Brutes:</span>
                         <span className="font-semibold text-chart-1 text-xs sm:text-sm break-all">
-                          {(month.total || 0).toFixed(2)} €
+                          {(month.total || 0).toFixed(2)} $
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-xs sm:text-sm text-muted-foreground">Honoraires:</span>
                         <span className="font-semibold text-chart-3 text-xs sm:text-sm break-all">
-                          {(month.honoraireTotal || 0).toFixed(2)} €
+                          {(month.honoraireTotal || 0).toFixed(2)} $
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-xs sm:text-sm text-muted-foreground">Ventes Nettes:</span>
                         <span className="font-semibold text-chart-2 text-xs sm:text-sm break-all">
-                          {(month.netTotal || 0).toFixed(2)} €
+                          {(month.netTotal || 0).toFixed(2)} $
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
@@ -664,7 +664,7 @@ export default function SalesTrackingSystem() {
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="week" fontSize={12} tick={{ fontSize: 10 }} />
                         <YAxis fontSize={12} />
-                        <Tooltip formatter={(value) => [`${Number(value).toFixed(2)} €`, ""]} />
+                        <Tooltip formatter={(value) => [`${Number(value).toFixed(2)} $`, ""]} />
                         <Line type="monotone" dataKey="Ventes Nettes" stroke="hsl(var(--chart-2))" strokeWidth={2} />
                       </LineChart>
                     </ResponsiveContainer>
@@ -701,7 +701,7 @@ export default function SalesTrackingSystem() {
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                           ))}
                         </Pie>
-                        <Tooltip formatter={(value) => [`${Number(value).toFixed(2)} €`, ""]} />
+                        <Tooltip formatter={(value) => [`${Number(value).toFixed(2)} $`, ""]} />
                         <Legend />
                       </PieChart>
                     </ResponsiveContainer>

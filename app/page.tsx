@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
+import { database } from "../firebase";
+import { ref, set, onValue } from "firebase/database";
 import {
   BarChart,
   Bar,
@@ -60,17 +62,19 @@ export default function SalesTrackingSystem() {
 
   // Initialize data
   useEffect(() => {
-    const savedDailyData = localStorage.getItem("dailySalesData")
+  const salesRef = ref(database, "ventes/");
+  onValue(salesRef, (snapshot) => {
+    const data = snapshot.val() || {};
+    const salesArray: DailySale[] = Object.entries(data).map(([date, value]: any) => ({
+      date,
+      amount: value.amount,
+      honoraireAmount: value.amount * 0.96,
+      netAmount: value.amount * 0.1, // ou amount * 0.1 si net est calculé après honoraire
+    }));
+    setDailySales(salesArray);
+  });
+}, []);
 
-    if (savedDailyData) {
-      const parsedData = JSON.parse(savedDailyData)
-      const migratedData = parsedData.map((sale: any) => ({
-        ...sale,
-        honoraireAmount: sale.honoraireAmount || sale.amount * 0.96,
-      }))
-      setDailySales(migratedData)
-    }
-  }, [])
 
   // Save data to localStorage
   useEffect(() => {
@@ -80,44 +84,25 @@ export default function SalesTrackingSystem() {
   }, [dailySales])
 
   const addDailySale = () => {
-    if (!dailyAmount || !selectedDate) return
+  if (!dailyAmount || !selectedDate) return;
 
-    setIsLoading(true)
+  setIsLoading(true);
 
-    setTimeout(() => {
-      const amount = Number.parseFloat(dailyAmount)
-      const honoraireAmount = amount * 0.96 // Honoraire is -4% from original
-      const netAmount = honoraireAmount * 0.1
+  const amount = parseFloat(dailyAmount);
+  const honoraireAmount = amount * 0.96; // -4%
+  const netAmount = amount * 0.1;        // 10% du montant original
 
-      setDailySales((prev) => {
-        const updated = [...prev]
-        const existingIndex = updated.findIndex((sale) => sale.date === selectedDate)
-
-        if (existingIndex >= 0) {
-          // Update existing entry
-          updated[existingIndex] = {
-            date: selectedDate,
-            amount,
-            netAmount,
-            honoraireAmount,
-          }
-        } else {
-          // Add new entry
-          updated.push({
-            date: selectedDate,
-            amount,
-            netAmount,
-            honoraireAmount,
-          })
-        }
-
-        return updated.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      })
-
-      setDailyAmount("")
-      setIsLoading(false)
-    }, 500)
-  }
+  // Écrire directement dans Firebase
+  set(ref(database, "ventes/" + selectedDate), {
+    amount,
+    honoraireAmount,
+    netAmount,
+  })
+    .then(() => {
+      setDailyAmount("");
+    })
+    .finally(() => setIsLoading(false));
+};
 
   const getDailySaleForDate = (date: string) => {
     return dailySales.find((sale) => sale.date === date)

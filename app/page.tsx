@@ -311,32 +311,33 @@ export default function SalesTrackingSystem() {
 
   return (
     <div className={`min-h-screen bg-background p-2 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 ${isIOS ? 'ios-fix' : ''}`}>
-      {/* Header */}
-      <div className="animate-bounce-in">
-        <Card className={`bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-xl ${isIOS ? 'card-fix' : ''}`}>
-          <CardHeader className="p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="bg-white/20 rounded-lg px-3 py-1 animate-pulse-glow">
-                    <span className="text-lg sm:text-xl font-bold text-white">FAGAFIJO</span>
-                  </div>
-                </div>
-                <CardTitle className="text-xl sm:text-2xl font-bold flex items-center gap-2 flex-wrap">
-                  <BarChart3 className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0 animate-spin-slow" />
-                  <span className="break-words">Suivi Annuel des Ventes Quotidiennes {currentYear}</span>
-                </CardTitle>
-                <CardDescription className="text-primary-foreground/90 text-sm sm:text-base mt-2">
-                  Système de gestion et suivi des ventes quotidiennes avec calculs automatiques
-                </CardDescription>
-              </div>
-              <div className="flex-shrink-0">
-                <ThemeToggle />
+  {/* Header */}
+  <div className="animate-bounce-in">
+    <Card className={`bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-xl ${isIOS ? 'card-fix' : ''}`}>
+      <CardHeader className="p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              
+              <div className="flex flex-col">
+                <span className="text-xl sm:text-2xl font-bold text-white tracking-tight">FAGAFIJO</span>
+                <span className="text-xs text-white/80 font-medium">Financial Analytics</span>
               </div>
             </div>
-          </CardHeader>
-        </Card>
-      </div>
+            <CardTitle className="text-xl sm:text-2xl font-bold flex items-center gap-2 flex-wrap mt-3">
+              <span className="break-words">Suivi Annuel des Ventes {currentYear}</span>
+            </CardTitle>
+            <CardDescription className="text-primary-foreground/90 text-sm sm:text-base mt-2">
+              Système de gestion et suivi des ventes quotidiennes avec calculs automatiques
+            </CardDescription>
+          </div>
+          <div className="flex-shrink-0">
+            <ThemeToggle />
+          </div>
+        </div>
+      </CardHeader>
+    </Card>
+  </div>
 
       {/* Stats Cards */}
       <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 animate-stagger-in ${isIOS ? 'ios-grid-fix' : ''}`}>

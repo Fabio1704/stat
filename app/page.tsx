@@ -22,6 +22,7 @@ import {
   PieChart,
   Pie,
   Cell,
+  Legend,
 } from "recharts"
 import {
   TrendingUp,
@@ -30,7 +31,7 @@ import {
   Download,
   Plus,
   BarChart3,
-  PieChartIcon,
+  PieChart as PieChartIcon,
   FileText,
   Trash2,
   Receipt,
@@ -99,8 +100,8 @@ export default function SalesTrackingSystem() {
       return;
     }
 
-    const honoraireAmount = amount * 0.96; // -4%
-    const netAmount = amount * 0.1;        // 10% du montant original
+    const honoraireAmount = amount * 0.96;
+    const netAmount = amount * 0.1;
 
     try {
       // Écrire directement dans Firebase
@@ -291,6 +292,17 @@ export default function SalesTrackingSystem() {
   const stats = getTotalStats()
   const monthlySummaries = getMonthlySummaries()
   const currentDailySale = getDailySaleForDate(selectedDate)
+  const chartData = getChartData()
+
+  // Données pour le graphique circulaire trimestriel
+  const quarterlyData = [
+    { name: "T1", value: monthlySummaries.slice(0, 3).reduce((sum, m) => sum + m.netTotal, 0) },
+    { name: "T2", value: monthlySummaries.slice(3, 6).reduce((sum, m) => sum + m.netTotal, 0) },
+    { name: "T3", value: monthlySummaries.slice(6, 9).reduce((sum, m) => sum + m.netTotal, 0) },
+    { name: "T4", value: monthlySummaries.slice(9, 12).reduce((sum, m) => sum + m.netTotal, 0) },
+  ]
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
   return (
     <div className="min-h-screen bg-background p-2 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
@@ -547,17 +559,181 @@ export default function SalesTrackingSystem() {
           )}
         </TabsContent>
 
-        {/* Reste du code inchangé */}
+        {/* Weekly View Tab */}
         <TabsContent value="hebdomadaire" className="space-y-4 mt-4">
-          {/* ... contenu de l'onglet hebdomadaire ... */}
+          <Card className="animate-slide-in-up">
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-lg sm:text-xl text-foreground">Vue Hebdomadaire</CardTitle>
+              <CardDescription className="text-foreground/80">
+                Aperçu des ventes quotidiennes regroupées par semaines
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+              {chartData.length > 0 ? (
+                <div className="h-64 sm:h-80 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" opacity={0.3} />
+                      <XAxis dataKey="week" fontSize={12} tick={{ fontSize: 10, fill: "hsl(var(--foreground))" }} />
+                      <YAxis fontSize={12} tick={{ fill: "hsl(var(--foreground))" }} />
+                      <Tooltip
+                        formatter={(value) => [`${Number(value).toFixed(2)} €`, ""]}
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--background))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "8px",
+                        }}
+                      />
+                      <Legend />
+                      <Bar dataKey="Ventes Brutes" fill="hsl(var(--chart-1))" className="animate-bar-grow" />
+                      <Bar dataKey="Ventes Nettes" fill="hsl(var(--chart-2))" className="animate-bar-grow" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="h-64 flex items-center justify-center text-muted-foreground">
+                  Aucune donnée disponible pour afficher le graphique hebdomadaire
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
+        {/* Monthly Summary Tab */}
         <TabsContent value="mensuel" className="space-y-4 mt-4">
-          {/* ... contenu de l'onglet mensuel ... */}
+          <Card>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-lg sm:text-xl">Résumé Mensuel</CardTitle>
+              <CardDescription>Totaux par mois avec nombre de jours actifs</CardDescription>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {monthlySummaries.map((month, index) => (
+                  <Card key={index} className="hover:shadow-md transition-shadow duration-300">
+                    <CardHeader className="pb-2 p-4">
+                      <CardTitle className="text-base sm:text-lg">{month.month}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2 p-4 pt-0">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs sm:text-sm text-muted-foreground">Ventes Brutes:</span>
+                        <span className="font-semibold text-chart-1 text-xs sm:text-sm break-all">
+                          {(month.total || 0).toFixed(2)} €
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs sm:text-sm text-muted-foreground">Honoraires:</span>
+                        <span className="font-semibold text-chart-3 text-xs sm:text-sm break-all">
+                          {(month.honoraireTotal || 0).toFixed(2)} €
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs sm:text-sm text-muted-foreground">Ventes Nettes:</span>
+                        <span className="font-semibold text-chart-2 text-xs sm:text-sm break-all">
+                          {(month.netTotal || 0).toFixed(2)} €
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs sm:text-sm text-muted-foreground">Jours:</span>
+                        <Badge variant="outline" className="text-xs">
+                          {month.days}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
+        {/* Statistics Tab */}
         <TabsContent value="statistiques" className="space-y-4 mt-4">
-          {/* ... contenu de l'onglet statistiques ... */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <BarChart3 className="h-5 w-5 flex-shrink-0" />
+                  Évolution des Ventes
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 sm:p-6">
+                {chartData.length > 0 ? (
+                  <div className="h-48 sm:h-64 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="week" fontSize={12} tick={{ fontSize: 10 }} />
+                        <YAxis fontSize={12} />
+                        <Tooltip formatter={(value) => [`${Number(value).toFixed(2)} €`, ""]} />
+                        <Line type="monotone" dataKey="Ventes Nettes" stroke="hsl(var(--chart-2))" strokeWidth={2} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="h-48 sm:h-64 flex items-center justify-center text-muted-foreground">
+                    Aucune donnée disponible
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <PieChartIcon className="h-5 w-5 flex-shrink-0" />
+                  Répartition Trimestrielle
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 sm:p-6">
+                {quarterlyData.some(q => q.value > 0) ? (
+                  <div className="h-48 sm:h-64 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={quarterlyData}
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={60}
+                          dataKey="value"
+                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {quarterlyData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value) => [`${Number(value).toFixed(2)} €`, ""]} />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="h-48 sm:h-64 flex items-center justify-center text-muted-foreground">
+                    Aucune donnée disponible
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Export Section */}
+          <Card className="animate-slide-in-up">
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <FileText className="h-5 w-5 flex-shrink-0 animate-pulse-subtle" />
+                Export et Rapports
+              </CardTitle>
+              <CardDescription>Générez et téléchargez vos rapports de ventes quotidiennes complets</CardDescription>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+              <Button
+                onClick={exportToPDF}
+                className="w-full sm:w-auto transition-all duration-300 hover:scale-105 animate-pulse-on-hover"
+              >
+                <Download className="h-4 w-4 mr-2 animate-bounce-subtle" />
+                Exporter en PDF
+              </Button>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

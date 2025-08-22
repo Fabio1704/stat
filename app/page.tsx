@@ -54,7 +54,22 @@ interface MonthlySummary {
   days: number
 }
 
+// Hook pour détecter iOS
+function useIsIOS() {
+  const [isIOS, setIsIOS] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const userAgent = window.navigator.userAgent;
+      setIsIOS(/iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream);
+    }
+  }, []);
+
+  return isIOS;
+}
+
 export default function SalesTrackingSystem() {
+  const isIOS = useIsIOS();
   const [currentYear] = useState(new Date().getFullYear())
   const [dailySales, setDailySales] = useState<DailySale[]>([])
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0])
@@ -305,10 +320,10 @@ export default function SalesTrackingSystem() {
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
   return (
-    <div className="min-h-screen bg-background p-2 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
+    <div className={`min-h-screen bg-background p-2 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 ${isIOS ? 'ios-fix' : ''}`}>
       {/* Header */}
       <div className="animate-bounce-in">
-        <Card className="bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-xl">
+        <Card className={`bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-xl ${isIOS ? 'card-fix' : ''}`}>
           <CardHeader className="p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
               <div className="flex-1">
@@ -333,8 +348,8 @@ export default function SalesTrackingSystem() {
         </Card>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 animate-stagger-in">
+      {/* Stats Cards - Ajusté pour iOS */}
+      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 animate-stagger-in ${isIOS ? 'ios-grid-fix' : ''}`}>
         <Card className="hover:shadow-xl transition-all duration-500 hover:scale-105 animate-slide-up">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-4">
             <CardTitle className="text-xs sm:text-sm font-medium">Total Ventes Brutes</CardTitle>
@@ -570,9 +585,9 @@ export default function SalesTrackingSystem() {
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
               {chartData.length > 0 ? (
-                <div className="h-64 sm:h-80 w-full">
+                <div className="w-full" style={{ height: isIOS ? '300px' : '400px' }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData}>
+                    <BarChart data={chartData} className="ios-chart-fix">
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" opacity={0.3} />
                       <XAxis dataKey="week" fontSize={12} tick={{ fontSize: 10, fill: "hsl(var(--foreground))" }} />
                       <YAxis fontSize={12} tick={{ fill: "hsl(var(--foreground))" }} />

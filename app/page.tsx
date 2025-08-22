@@ -92,13 +92,6 @@ export default function SalesTrackingSystem() {
     });
   }, []);
 
-  // Save data to localStorage
-  useEffect(() => {
-    if (dailySales.length > 0) {
-      localStorage.setItem("dailySalesData", JSON.stringify(dailySales))
-    }
-  }, [dailySales])
-
   const addDailySale = async () => {
     if (!dailyAmount || !selectedDate) {
       setFirebaseError("Veuillez entrer un montant valide");
@@ -119,7 +112,6 @@ export default function SalesTrackingSystem() {
     const netAmount = amount * 0.1;
 
     try {
-      // Écrire directement dans Firebase
       await set(ref(database, "ventes/" + selectedDate), {
         amount,
         honoraireAmount,
@@ -127,7 +119,6 @@ export default function SalesTrackingSystem() {
       });
       
       setDailyAmount("");
-      console.log("Données enregistrées avec succès");
     } catch (error) {
       console.error("Erreur Firebase:", error);
       setFirebaseError("Erreur lors de l'enregistrement. Vérifiez la connexion.");
@@ -309,7 +300,6 @@ export default function SalesTrackingSystem() {
   const currentDailySale = getDailySaleForDate(selectedDate)
   const chartData = getChartData()
 
-  // Données pour le graphique circulaire trimestriel
   const quarterlyData = [
     { name: "T1", value: monthlySummaries.slice(0, 3).reduce((sum, m) => sum + m.netTotal, 0) },
     { name: "T2", value: monthlySummaries.slice(3, 6).reduce((sum, m) => sum + m.netTotal, 0) },
@@ -328,7 +318,7 @@ export default function SalesTrackingSystem() {
             <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1 animate-pulse-glow">
+                  <div className="bg-white/20 rounded-lg px-3 py-1 animate-pulse-glow">
                     <span className="text-lg sm:text-xl font-bold text-white">FAGAFIJO</span>
                   </div>
                 </div>
@@ -348,7 +338,7 @@ export default function SalesTrackingSystem() {
         </Card>
       </div>
 
-      {/* Stats Cards - Ajusté pour iOS */}
+      {/* Stats Cards */}
       <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 animate-stagger-in ${isIOS ? 'ios-grid-fix' : ''}`}>
         <Card className="hover:shadow-xl transition-all duration-500 hover:scale-105 animate-slide-up">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-4">
@@ -403,7 +393,7 @@ export default function SalesTrackingSystem() {
 
       {/* Main Content */}
       <Tabs defaultValue="quotidien" className="animate-fade-in-up">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto bg-muted/50 backdrop-blur-sm">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto bg-muted/50">
           <TabsTrigger value="quotidien" className="text-xs sm:text-sm px-2 py-2 transition-all duration-300">
             Saisie Quotidienne
           </TabsTrigger>
@@ -426,8 +416,7 @@ export default function SalesTrackingSystem() {
                 Saisie des Ventes Quotidiennes
               </CardTitle>
               <CardDescription className="text-sm text-foreground/80">
-                Ajoutez vos ventes jour par jour. Les ventes nettes (-90%) et honoraires (96%) sont calculées
-                automatiquement.
+                Ajoutez vos ventes jour par jour. Les ventes nettes (-90%) et honoraires (96%) sont calculées automatiquement.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 p-4 sm:p-6">
@@ -483,7 +472,7 @@ export default function SalesTrackingSystem() {
               </Button>
 
               {dailyAmount && (
-                <div className="p-3 sm:p-4 bg-muted/70 backdrop-blur-sm rounded-lg animate-fade-in-scale border border-primary/20">
+                <div className="p-3 sm:p-4 bg-muted/70 rounded-lg animate-fade-in-scale border border-primary/20">
                   <p className="text-sm break-words text-foreground">
                     <strong>Aperçu:</strong> Vente brute: {(Number.parseFloat(dailyAmount || "0") || 0).toFixed(2)} € →
                     Honoraire: {((Number.parseFloat(dailyAmount || "0") || 0) * 0.96).toFixed(2)} € → Vente nette:{" "}
@@ -525,7 +514,6 @@ export default function SalesTrackingSystem() {
             </Card>
           )}
 
-          {/* Recent daily sales */}
           {dailySales.length > 0 && (
             <Card className="animate-slide-in-right">
               <CardHeader className="p-4 sm:p-6">
@@ -539,7 +527,7 @@ export default function SalesTrackingSystem() {
                     .map((sale, index) => (
                       <div
                         key={index}
-                        className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 bg-muted/30 backdrop-blur-sm rounded-lg gap-3 hover:bg-muted/50 transition-all duration-300 animate-fade-in-item"
+                        className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 bg-muted/30 rounded-lg gap-3 hover:bg-muted/50 transition-all duration-300 animate-fade-in-item"
                         style={{ animationDelay: `${index * 100}ms` }}
                       >
                         <div className="flex-shrink-0">
@@ -574,7 +562,6 @@ export default function SalesTrackingSystem() {
           )}
         </TabsContent>
 
-        {/* Weekly View Tab */}
         <TabsContent value="hebdomadaire" className="space-y-4 mt-4">
           <Card className="animate-slide-in-up">
             <CardHeader className="p-4 sm:p-6">
@@ -587,7 +574,7 @@ export default function SalesTrackingSystem() {
               {chartData.length > 0 ? (
                 <div className="w-full" style={{ height: isIOS ? '300px' : '400px' }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData} className="ios-chart-fix">
+                    <BarChart data={chartData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" opacity={0.3} />
                       <XAxis dataKey="week" fontSize={12} tick={{ fontSize: 10, fill: "hsl(var(--foreground))" }} />
                       <YAxis fontSize={12} tick={{ fill: "hsl(var(--foreground))" }} />
@@ -600,8 +587,8 @@ export default function SalesTrackingSystem() {
                         }}
                       />
                       <Legend />
-                      <Bar dataKey="Ventes Brutes" fill="hsl(var(--chart-1))" className="animate-bar-grow" />
-                      <Bar dataKey="Ventes Nettes" fill="hsl(var(--chart-2))" className="animate-bar-grow" />
+                      <Bar dataKey="Ventes Brutes" fill="hsl(var(--chart-1))" />
+                      <Bar dataKey="Ventes Nettes" fill="hsl(var(--chart-2))" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -614,7 +601,6 @@ export default function SalesTrackingSystem() {
           </Card>
         </TabsContent>
 
-        {/* Monthly Summary Tab */}
         <TabsContent value="mensuel" className="space-y-4 mt-4">
           <Card>
             <CardHeader className="p-4 sm:p-6">
@@ -661,7 +647,6 @@ export default function SalesTrackingSystem() {
           </Card>
         </TabsContent>
 
-        {/* Statistics Tab */}
         <TabsContent value="statistiques" className="space-y-4 mt-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
@@ -730,7 +715,6 @@ export default function SalesTrackingSystem() {
             </Card>
           </div>
 
-          {/* Export Section */}
           <Card className="animate-slide-in-up">
             <CardHeader className="p-4 sm:p-6">
               <CardTitle className="flex items-center gap-2 text-lg">

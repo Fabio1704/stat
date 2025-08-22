@@ -62,19 +62,18 @@ export default function SalesTrackingSystem() {
 
   // Initialize data
   useEffect(() => {
-  const salesRef = ref(database, "ventes/");
-  onValue(salesRef, (snapshot) => {
-    const data = snapshot.val() || {};
-    const salesArray: DailySale[] = Object.entries(data).map(([date, value]: any) => ({
-      date,
-      amount: value.amount,
-      honoraireAmount: value.amount * 0.96,
-      netAmount: value.amount * 0.1, // ou amount * 0.1 si net est calculé après honoraire
-    }));
-    setDailySales(salesArray);
-  });
-}, []);
-
+    const salesRef = ref(database, "ventes/");
+    onValue(salesRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      const salesArray: DailySale[] = Object.entries(data).map(([date, value]: any) => ({
+        date,
+        amount: value.amount,
+        honoraireAmount: value.honoraireAmount || value.amount * 0.96,
+        netAmount: value.netAmount || value.amount * 0.1,
+      }));
+      setDailySales(salesArray);
+    });
+  }, []);
 
   // Save data to localStorage
   useEffect(() => {
@@ -84,25 +83,29 @@ export default function SalesTrackingSystem() {
   }, [dailySales])
 
   const addDailySale = () => {
-  if (!dailyAmount || !selectedDate) return;
+    if (!dailyAmount || !selectedDate) return;
 
-  setIsLoading(true);
+    setIsLoading(true);
 
-  const amount = parseFloat(dailyAmount);
-  const honoraireAmount = amount * 0.96; // -4%
-  const netAmount = amount * 0.1;        // 10% du montant original
+    const amount = parseFloat(dailyAmount);
+    const honoraireAmount = amount * 0.96; // -4%
+    const netAmount = amount * 0.1;        // 10% du montant original
 
-  // Écrire directement dans Firebase
-  set(ref(database, "ventes/" + selectedDate), {
-    amount,
-    honoraireAmount,
-    netAmount,
-  })
-    .then(() => {
-      setDailyAmount("");
+    // Écrire directement dans Firebase
+    set(ref(database, "ventes/" + selectedDate), {
+      amount,
+      honoraireAmount,
+      netAmount,
     })
-    .finally(() => setIsLoading(false));
-};
+      .then(() => {
+        setDailyAmount("");
+        setIsLoading(false); // Réinitialiser l'état de chargement
+      })
+      .catch((error) => {
+        console.error("Erreur lors de l'ajout:", error);
+        setIsLoading(false); // Réinitialiser même en cas d'erreur
+      });
+  };
 
   const getDailySaleForDate = (date: string) => {
     return dailySales.find((sale) => sale.date === date)
